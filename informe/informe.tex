@@ -1,0 +1,75 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{top=3cm, bottom=3cm, left=3cm, right=3cm}
+
+\title{Proyecto 1: Sistema Híbrido Bioinspirado con Aprendizaje por Refuerzo\\
+\large Control de Políticas mediante REINFORCE Modulado por Trazas de Elegibilidad STDP (Regla de Tres Factores)}
+\author{Estudiante de Sistemas Híbridos Bioinspirados}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+Este informe documenta el diseño, implementación y validación de un sistema híbrido que acopla un modelo de aprendizaje automático bioinspirado (Plasticidad Dependiente del Tiempo de la Espiga - STDP) con un algoritmo de aprendizaje por refuerzo (REINFORCE). Se utiliza el entorno CartPole-v1 para la evaluación. Se presenta un estudio de ablación que compara el rendimiento del algoritmo REINFORCE estándar con la variante híbrida modificada con una regla Hebbiana de tres factores.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+El objetivo de este proyecto es explorar la viabilidad de utilizar reglas de aprendizaje locales biológicamente plausibles dentro de un marco clásico de aprendizaje por refuerzo. En algoritmos como REINFORCE, el mecanismo estándar de asignación de crédito a las acciones pasadas se basa en el algoritmo de retropropagación (Backpropagation). Aunque este método es matemáticamente riguroso, carece de plausibilidad biológica. En el cerebro humano, el aprendizaje se rige principalmente por interacciones locales en las sinapsis, donde la coincidencia temporal de señales pre- y post-sinápticas fortalece las conexiones (STDP). Además, las señales globales de neuromoduladores como la dopamina sirven para consolidar estos cambios cuando se obtiene una recompensa.
+
+En este trabajo, proponemos reemplazar (parcialmente) el uso de Backpropagation mediante la integración de una regla de aprendizaje de tres factores en la última capa de la red de política del agente. 
+
+\section{Componentes del Sistema Híbrido}
+\subsection{Algoritmo de Aprendizaje por Refuerzo: REINFORCE}
+El algoritmo REINFORCE es un método del tipo Gradient de Política. Su objetivo es maximizar la esperanza matemática del retorno descontado ajustando los parámetros de una red neuronal que representa la política estocástica $\pi(a|s, \theta)$. La regla de actualización se basa en la función objetivo:
+\begin{equation}
+    \Delta \theta = \alpha G_t \nabla_\theta \log \pi(a_t | s_t, \theta)
+\end{equation}
+
+\subsection{Componente Bioinspirado: Regla de 3 Factores (STDP)}
+La Plasticidad Dependiente del Tiempo de la Espiga (STDP) se simplifica aquí como una traza de co-activación Hebbiana. En el paso hacia adelante (forward), la actividad presináptica (salida de la capa oculta, $h$) y la actividad postsináptica (acción seleccionada, $a$) contribuyen a una "traza de elegibilidad" local $e(t)$:
+\begin{equation}
+    e_{i,j}(t) = \tau \cdot e_{i,j}(t-1) + h_i(t) \cdot \mathbb{I}(a(t) = j)
+\end{equation}
+Donde $\tau$ es la tasa de decaimiento. Finalmente, la actualización de los pesos se realiza multiplicando esta traza por la señal global del entorno $G_t$ provista por REINFORCE, configurando así una regla de tres factores.
+
+\section{Diseño Experimental}
+\subsection{Entorno de Pruebas: CartPole-v1}
+CartPole-v1 de Gymnasium es un entorno clásico de control continuo. El estado es un vector de 4 dimensiones (posición, velocidad, ángulo del péndulo, velocidad angular) y el espacio de acciones es discreto (0: izquierda, 1: derecha). El episodio termina si el péndulo cae más de 12 grados o si el carro sale de los límites. 
+
+\subsection{Prueba de Validez (Ablación)}
+Para asegurar que nuestro componente híbrido cumple con los requisitos:
+\begin{enumerate}
+    \item \textbf{Ablación}: La eliminación del STDP permite usar el optimizador Adam y Backpropagation estándar, convirtiéndose en REINFORCE puro.
+    \item \textbf{Dinámica}: La traza evoluciona en el tiempo $e(t)$ dinámicamente con las observaciones.
+    \item \textbf{Flujo}: El algoritmo REINFORCE calcula $G_t$, que es enviado al módulo STDP para ponderar las actualizaciones de la red.
+\end{enumerate}
+
+\section{Implementación y Resultados}
+La implementación en PyTorch incluye dos clases base de agentes, \texttt{ReinforceAgent} y \texttt{HybridReinforceAgent}. Ambos entrenaron durante 1000 episodios. 
+
+\subsection{Resultados y Curvas de Aprendizaje}
+Los resultados se evaluaron utilizando medias móviles para reducir la alta varianza inherente a los métodos de gradiente de política.
+A continuación se muestra la curva de aprendizaje comparativa.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../results/learning_curves.png}
+    \caption{Curvas de aprendizaje: REINFORCE Baseline vs Híbrido (STDP).}
+    \label{fig:learning_curves}
+\end{figure}
+
+Como puede observarse en la Figura \ref{fig:learning_curves}, el baseline analítico presenta un aprendizaje más rápido, lo cual es esperable ya que Backpropagation es un optimizador exacto. Sin embargo, nuestro sistema híbrido logra aprender políticas competentes sin necesidad de derivación analítica de la última capa, lo que valida la hipótesis de que las trazas Hebbianas sirven como una aproximación válida del gradiente en tareas de control discreto.
+
+\section{Conclusiones}
+Se ha implementado con éxito un sistema híbrido unificando métodos clásicos de RL con reglas locales de aprendizaje biológicamente plausibles. La aproximación de tres factores es suficiente para resolver entornos de control discreto de baja dimensionalidad como CartPole. En el futuro, podría explorarse la sustitución de toda la red por Redes Neuronales de Espigas (SNNs) para una integración más profunda.
+
+\end{document}
