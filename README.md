@@ -50,4 +50,3 @@ Este repositorio cumple con las tres reglas de validez requeridas en la asignatu
 
 ## Video
 
-[ENLACE AL VIDEO AQUÍ] (Añadir antes de la entrega)
