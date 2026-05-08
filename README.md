@@ -50,3 +50,4 @@ Este repositorio cumple con las tres reglas de validez requeridas en la asignatu
 
 ## Video
 
+Presentación en vídeo del proyecto: [https://youtu.be/EciMePObPic](https://youtu.be/EciMePObPic)
