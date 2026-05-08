@@ -1,5 +1,7 @@
 # Proyecto 1: Sistema Híbrido Bioinspirado (REINFORCE + STDP)
 
+**Repositorio en GitHub:** [https://github.com/AlexFM9/Proyecto1-APAU-BIO.git](https://github.com/AlexFM9/Proyecto1-APAU-BIO.git)
+
 Este repositorio contiene la implementación de un sistema de aprendizaje automático híbrido desarrollado para la asignatura **APAU BIO** (Aprendizaje Automático Bioinspirado).
 
 El sistema acopla el algoritmo de Reinforcement Learning clásico **REINFORCE** con una regla local de aprendizaje neuroinspirada (**STDP / Hebbiana de 3 factores**).
